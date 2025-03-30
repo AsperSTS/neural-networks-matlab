@@ -33,8 +33,10 @@ if samples_X ~= samples_t
     error('El número de muestras en X y t no coincide');
 end
 
+[X_norm, ps] = mapminmax(X);
+
 % Crear la red neuronal usando la sintaxis actualizada
-RN = feedforwardnet([10, 5, 5]);  % 
+RN = feedforwardnet([10, 5, 5]);  % 10,5,5
 
 % Configurar funciones de activación
 RN.layers{1}.transferFcn = 'logsig';
@@ -45,16 +47,16 @@ RN.layers{3}.transferFcn = 'purelin';
 RN.trainFcn = 'trainlm';
 
 % Configuración del entrenamiento
-RN.trainParam.epochs = 1000;      % Número máximo de épocas
-RN.trainParam.goal = 1e-5;        % Error objetivo
-RN.trainParam.max_fail = 6;       % Máximo número de fallos en validación
+RN.trainParam.epochs = 100;      % Número máximo de épocas
+RN.trainParam.goal = 0.01; %1e-5;        % Error objetivo
+RN.trainParam.max_fail = 15;  % 6 - Máximo número de fallos en validación
 
 
 % Entrenamiento de la red
-[RNE, tr] = train(RN, X, t);
+[RNE, tr] = train(RN, X_norm, t);
 
 % Simulación con los datos de entrenamiento
-y = sim(RNE, X);
+y = sim(RNE, X_norm);
 
 % Cálculo del error
 error_cuadratico = perform(RNE, y, t);

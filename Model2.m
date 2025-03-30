@@ -30,20 +30,20 @@ if samples_X ~= samples_t
     error('El número de muestras en X y t no coincide');
 end
 
-% Crear la red neuronal usando la sintaxis actualizada
-RN = feedforwardnet([7, 5, 3]);  % Red feedforward con capas ocultas de 5 y 3 neuronas
+% red neuronal usando la sintaxis actualizada
+RN = feedforwardnet([6, 6, 4]);  % 3,4,4 
 
-% Configurar funciones de activación
+% funciones de activación
 RN.layers{1}.transferFcn = 'logsig';
 RN.layers{2}.transferFcn = 'logsig';
 RN.layers{3}.transferFcn = 'purelin';
 
-% Configurar algoritmo de entrenamiento
+% algoritmo de entrenamiento
 RN.trainFcn = 'trainlm';
 
 % Configuración del entrenamiento
-RN.trainParam.epochs = 500;      % Número máximo de épocas
-RN.trainParam.goal = 1e-5;        % Error objetivo
+RN.trainParam.epochs = 20;      % Número máximo de épocas
+RN.trainParam.goal = 0.001;%1e-5;        % Error objetivo
 RN.trainParam.max_fail = 6;       % Máximo número de fallos en validación
 
 % Entrenamiento de la red
@@ -79,17 +79,6 @@ legend('Entrenamiento', 'Validación', 'Test');
 xlabel('Épocas');
 ylabel('Error Cuadrático Medio');
 title('Evolución del Entrenamiento');
-
-% Graficar comparación entre salida deseada y obtenida
-figure;
-builtin('plot', 1:length(t), t, 'bo-', 'LineWidth', 2);
-hold on;
-builtin('plot', 1:length(t), y, 'r*-');
-legend('Clases Deseadas', 'Salidas de la Red');
-xlabel('Muestra');
-ylabel('Clase');
-title('Comparación entre Salidas Deseadas y Obtenidas');
-
 
 % Guardar el modelo entrenado
 save('modelo2_Fertility.mat', 'RNE');
