@@ -11,8 +11,8 @@
     - SIRA: 6
     - DERMASON: 7
 %}
-
-data = csvread('dataset3_Beans.csv');
+T = readtable('dataset3_Beans.csv');
+data = table2array(T);
 
 % Verificar dimensiones de los datos cargados
 [num_samples, num_columns] = size(data);
@@ -32,25 +32,22 @@ disp(['Muestras en t: ', num2str(samples_t)]);
 if samples_X ~= samples_t
     error('El número de muestras en X y t no coincide');
 end
-
 [X_norm, ps] = mapminmax(X);
 
-% Crear la red neuronal usando la sintaxis actualizada
-RN = feedforwardnet([10, 5, 5]);  % 10,5,5
-
-% Configurar funciones de activación
-RN.layers{1}.transferFcn = 'logsig';
-RN.layers{2}.transferFcn = 'logsig';
-RN.layers{3}.transferFcn = 'purelin';
-
-% Configurar algoritmo de entrenamiento
-RN.trainFcn = 'trainlm';
-
-% Configuración del entrenamiento
-RN.trainParam.epochs = 100;      % Número máximo de épocas
-RN.trainParam.goal = 0.01; %1e-5;        % Error objetivo
-RN.trainParam.max_fail = 15;  % 6 - Máximo número de fallos en validación
-
+% Crear la red neuronal
+RN = feedforwardnet([8, 8, 5]);
+% Configuracion de activación y entrenamiento
+RN.layers{1}.transferFcn = 'tansig';
+RN.layers{2}.transferFcn = 'tansig';
+RN.layers{3}.transferFcn = 'softmax';
+RN.trainFcn = 'trainbr';
+% parametros de entrenamiento
+RN.trainParam.epochs = 1000;
+RN.trainParam.goal = 0.001;
+% todo el conjunto para entrenamiento
+RN.divideParam.trainRatio = 1;
+RN.divideParam.valRatio = 0;
+RN.divideParam.testRatio = 0;
 
 % Entrenamiento de la red
 [RNE, tr] = train(RN, X_norm, t);
@@ -85,17 +82,6 @@ legend('Entrenamiento', 'Validación', 'Test');
 xlabel('Épocas');
 ylabel('Error Cuadrático Medio');
 title('Evolución del Entrenamiento');
-
-% Graficar comparación entre salida deseada y obtenida
-figure;
-builtin('plot', 1:length(t), t, 'bo-', 'LineWidth', 2);
-hold on;
-builtin('plot', 1:length(t), y, 'r*-');
-legend('Clases Deseadas', 'Salidas de la Red');
-xlabel('Muestra');
-ylabel('Clase');
-title('Comparación entre Salidas Deseadas y Obtenidas');
-
 
 % Guardar el modelo entrenado
 save('modelo3_Beans.mat', 'RNE');

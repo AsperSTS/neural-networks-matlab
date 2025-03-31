@@ -9,10 +9,10 @@ X_nuevos = nuevos_datos(:, 1:16)';
 t = nuevos_datos(:, 17)'; % Columna con etiquetas reales
 
 % Normalizar los nuevos datos usando la misma estructura de preprocesamiento (ps)
-% [X_nuevos_norm, ps] = mapminmax(X_nuevos);
+[X_nuevos_norm, ps] = mapminmax(X_nuevos);
 
 % Simular la red neuronal
-y = sim(RNE, X_nuevos);
+y = sim(RNE, X_nuevos_norm);
 
 % Calcular precisión
 m = length(t);

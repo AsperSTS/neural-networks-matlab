@@ -1,13 +1,9 @@
 %{
-    MODELO FERTILIDAD
-    DATASET: 10 COLUMNAS, 99 FILAS
-
-    CLASES:
-    - N:1
-    - O:2
+    MODELO CIRCLES
 %}
 
-data = csvread('dataset2_Fertility.txt');
+T = readtable('dataset5_Circles.csv');
+data = table2array(T);
 
 % Verificar dimensiones de los datos cargados
 [num_samples, num_columns] = size(data);
@@ -15,8 +11,8 @@ disp(['Número de muestras: ', num2str(num_samples)]);
 disp(['Número de columnas: ', num2str(num_columns)]);
 
 % Separar características y clases
-X = data(:, 1:3)'; % Transponer para que cada columna sea una muestra
-t = data(:, 4)';   % Vector de clases
+X = data(:, 1:2)'; % Transponer para que cada columna sea una muestra
+t = data(:, 3)';   % Vector de clases
 
 % Verificar que X y t tienen el mismo número de muestras
 [~, samples_X] = size(X);
@@ -27,28 +23,28 @@ disp(['Muestras en t: ', num2str(samples_t)]);
 if samples_X ~= samples_t
     error('El número de muestras en X y t no coincide');
 end
+[X_norm, ps] = mapminmax(X);
 
-% Crear la red neuronal usando la sintaxis actualizada
-RN = feedforwardnet([5, 3]);  % Red feedforward con capas ocultas de 5 y 3 neuronas
-
-% Configurar funciones de activación
-RN.layers{1}.transferFcn = 'logsig';
-RN.layers{2}.transferFcn = 'logsig';
-RN.layers{3}.transferFcn = 'purelin';
-
-% Configurar algoritmo de entrenamiento
+% arquitectura mas robusta para 100 clases
+RN = feedforwardnet([25, 15]);
+% activaciones
+RN.layers{1}.transferFcn = 'tansig';
+RN.layers{2}.transferFcn = 'tansig';
+% algoritmo de entrenamiento
 RN.trainFcn = 'trainlm';
-
-% Configuración del entrenamiento
-RN.trainParam.epochs = 8;      % Número máximo de épocas
-RN.trainParam.goal = 1e-5;        % Error objetivo
-RN.trainParam.max_fail = 6;       % Máximo número de fallos en validación
+% configuración del entrenamiento
+RN.trainParam.epochs = 500;      % Número máximo de épocas
+RN.trainParam.goal = 0.001;        % Error objetivo
+% todo el conjunto para entrenamiento
+RN.divideParam.trainRatio = 1;
+RN.divideParam.valRatio = 0;
+RN.divideParam.testRatio = 0;
 
 % Entrenamiento de la red
-[RNE, tr] = train(RN, X, t);
+[RNE, tr] = train(RN, X_norm, t);
 
 % Simulación con los datos de entrenamiento
-y = sim(RNE, X);
+y = sim(RNE, X_norm);
 
 % Cálculo del error
 error_cuadratico = perform(RNE, y, t);
@@ -78,15 +74,6 @@ xlabel('Épocas');
 ylabel('Error Cuadrático Medio');
 title('Evolución del Entrenamiento');
 
-% Graficar comparación entre salida deseada y obtenida
-figure;
-builtin('plot', 1:length(t), t, 'bo-', 'LineWidth', 2);
-hold on;
-builtin('plot', 1:length(t), y, 'r*-');
-legend('Clases Deseadas', 'Salidas de la Red');
-xlabel('Muestra');
-ylabel('Clase');
-title('Comparación entre Salidas Deseadas y Obtenidas');
 
 
 % Guardar el modelo entrenado

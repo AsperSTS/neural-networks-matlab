@@ -45,6 +45,10 @@ RN.trainFcn = 'trainlm';
 RN.trainParam.epochs = 20;      % Número máximo de épocas
 RN.trainParam.goal = 0.001;%1e-5;        % Error objetivo
 RN.trainParam.max_fail = 6;       % Máximo número de fallos en validación
+% todo el conjunto para entrenamiento
+RN.divideParam.trainRatio = 1;
+RN.divideParam.valRatio = 0;
+RN.divideParam.testRatio = 0;
 
 % Entrenamiento de la red
 [RNE, tr] = train(RN, X, t);

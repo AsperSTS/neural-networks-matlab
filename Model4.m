@@ -1,10 +1,5 @@
 %{
-    MODELO FERTILIDAD
-    DATASET: 10 COLUMNAS, 99 FILAS
-
-    CLASES:
-    - N:1
-    - O:2
+    MODELO CANCER
 %}
 
 %data = csvread('dataset4_Cancer.csv');
@@ -29,28 +24,33 @@ disp(['Muestras en t: ', num2str(samples_t)]);
 if samples_X ~= samples_t
     error('El número de muestras en X y t no coincide');
 end
+[X_norm, ps] = mapminmax(X);
 
 % Crear la red neuronal usando la sintaxis actualizada
-RN = feedforwardnet([8,4]);  % Red feedforward con capas ocultas de 5 y 3 neuronas
+RN = feedforwardnet([20,15,10]);  % Red feedforward con capas ocultas de 5 y 3 neuronas
 
 % Correct transfer function configuration
-RN.layers{1}.transferFcn = 'logsig';    % First hidden layer
-RN.layers{2}.transferFcn = 'logsig';    % Second hidden layer
+RN.layers{1}.transferFcn = 'tansig';    % First hidden layer
+RN.layers{2}.transferFcn = 'tansig';    % Second hidden layer
 RN.layers{3}.transferFcn = 'softmax';   % For multi-class classification
 
 % Configurar algoritmo de entrenamiento
-RN.trainFcn = 'trainlm';%'trainlm';
+RN.trainFcn = 'trainlm';%'trainbr';
 
 % Configuración del entrenamiento
-RN.trainParam.epochs = 1000;      % Número máximo de épocas
+RN.trainParam.epochs = 50;      % Número máximo de épocas
 RN.trainParam.goal = 0.001;%1e-5;        % Error objetivo
-RN.trainParam.max_fail = 20;       % Máximo número de fallos en validación
+%RN.trainParam.max_fail = 20;       % Máximo número de fallos en validación
+% todo el conjunto para entrenamiento
+RN.divideParam.trainRatio = 1;
+RN.divideParam.valRatio = 0;
+RN.divideParam.testRatio = 0;
 
 % Entrenamiento de la red
-[RNE, tr] = train(RN, X, t);
+[RNE, tr] = train(RN, X_norm, t);
 
 % Simulación con los datos de entrenamiento
-y = sim(RNE, X);
+y = sim(RNE, X_norm);
 
 % Cálculo del error
 error_cuadratico = perform(RNE, y, t);
@@ -76,15 +76,6 @@ xlabel('Épocas');
 ylabel('Error Cuadrático Medio');
 title('Evolución del Entrenamiento');
 
-% Graficar comparación entre salida deseada y obtenida
-figure;
-builtin('plot', 1:length(t), t, 'bo-', 'LineWidth', 2);
-hold on;
-builtin('plot', 1:length(t), y, 'r*-');
-legend('Clases Deseadas', 'Salidas de la Red');
-xlabel('Muestra');
-ylabel('Clase');
-title('Comparación entre Salidas Deseadas y Obtenidas');
 
 
 % Guardar el modelo entrenado
